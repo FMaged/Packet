@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include <netinet/in.h>
+#include <arpa/inet.h>  // For inet_ntop()
 #include "../Service/error.h"
 
 typedef unsigned char u_char;
@@ -32,7 +33,7 @@ typedef struct  {
 	uint8_t ip_ttl;		/* time to live */
 	uint8_t ip_p;		/* protocol */
 	uint16_t ip_sum;		/* checksum */
-	struct in_addr ip_src,ip_dst; /* source and dest address */
+	uint32_t ip_src,ip_dst; /* source and dest address */
 }sniff_ip;
 #define IP_HL(ip)		(((ip)->ip_vhl) & 0x0f)
 #define IP_V(ip)		(((ip)->ip_vhl) >> 4)
@@ -40,14 +41,15 @@ typedef struct  {
 
 
 uint8_t parse_ip (sniff_ip** ipHeader,const u_char* packet);
-
+sniffer_error_t ip_To_String(char* buffer, uint32_t ip_addr, size_t size);
 
 sniffer_error_t ipV_to_string(uint8_t extractedVersion,char* buffer);
 
 int ip_DF(uint16_t ip_off);
 int ip_MF(uint16_t ip_off);
 int ip_offset(uint16_t ip_off);
+char* protocol_to_string(uint8_t protocol);
 
-uint16_t calculate_checksum(sniff_ip ipHeader);
-
+uint16_t calculate_checksum(sniff_ip* ipHeader);
+sniffer_error_t validateChecksum(uint16_t checksum,uint16_t calculatedChecksum);
 #endif

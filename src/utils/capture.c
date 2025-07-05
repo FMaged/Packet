@@ -80,28 +80,51 @@ void packet_handler(u_char *user_data, const struct pcap_pkthdr *pkthdr, const u
     char Vbuffer[4];
     uint16_t type= parse_ethernet(&etherFrame,packet);
     sniffer_error_t result=type_to_sting(type,buffer);
-    result=mac_to_string(etherFrame->ether_dhost,dhost_buffer,sizeof(dhost_buffer));
-    result=mac_to_string(etherFrame->ether_shost,shost_buffer,sizeof(shost_buffer));
+    sniffer_error_t macResult=mac_to_string(etherFrame->ether_dhost,dhost_buffer,sizeof(dhost_buffer));
+    sniffer_error_t senderMacResult=mac_to_string(etherFrame->ether_shost,shost_buffer,sizeof(shost_buffer));
+    
+    if(result.code==SNIFFER_OK&&macResult.code==SNIFFER_OK&&senderMacResult.code==SNIFFER_OK){
+        printf("dst MacAddress: %s\n",dhost_buffer);    
+        printf("Sender MacAddress: %s\n",shost_buffer);
+        printf("Type: %s\n",buffer);
+        if(type==htons(ETHERTYPE_IP)){
+            u_char protocol=parse_ip(&ipHeader,packet);
+            printf("Protocol: %s\n",protocol_to_string(protocol));
+            printf("version: %d\n",IP_V(ipHeader));
+            result=ipV_to_string(IP_V(ipHeader),Vbuffer);
+            printf("Verśion string: %s\n",Vbuffer);
+            printf("header length: %d bits\n",IP_HL(ipHeader)*4);   
+            printf("Total Length: %d bytes\n",ntohs(ipHeader->ip_len ));
+            printf("ID: %d\n",ntohs(ipHeader->ip_id));
+            printf("Fragmention: %d\n",ntohs(ipHeader->ip_off));
+            printf("Dont Fragment: %d\n",ip_DF(ipHeader->ip_off));
+            printf("More Fragment: %d\n",ip_MF(ipHeader->ip_off));
+            printf("frag Offset: %d\n",ip_offset(ipHeader->ip_off));
+            printf("TTL: %d\n",ipHeader->ip_ttl);
+            uint16_t cChecksum=calculate_checksum(ipHeader);
+            printf("Checksum: %d  %s\n",ipHeader->ip_sum,validateChecksum(ipHeader->ip_sum,cChecksum).msg);
 
-    printf("Type: %s\n",buffer);
-    if(type==htons(ETHERTYPE_IP)){
-        u_char protocol=parse_ip(&ipHeader,packet);
-        printf("Protocol: %d\n",protocol);
-        printf("version: %d\n",IP_V(ipHeader));
-        result=ipV_to_string(IP_V(ipHeader),Vbuffer);
-        printf("Verśion string: %s\n",Vbuffer);
-        printf("header length: %d bits\n",IP_HL(ipHeader)*4);   
-        printf("Total Length: %d bytes\n",ntohs(ipHeader->ip_len ));
-        printf("ID: %d\n",ntohs(ipHeader->ip_id));
-        printf("Fragmention: %d\n",ntohs(ipHeader->ip_off));
-        printf("Dont Fragment: %d\n",ip_DF(ipHeader->ip_off));
-        printf("More Fragment: %d\n",ip_MF(ipHeader->ip_off));
-        printf("frag Offset: %d\n",ip_offset(ipHeader->ip_off));
-        printf("TTL: %d\n",ipHeader->ip_ttl);
-        printf("===============================\n");
-    }else{
-        printf("ipv6\n\n\n");
+
+            char ip_dstStr[INET_ADDRSTRLEN];
+            char ip_SenStr[INET_ADDRSTRLEN];
+            sniffer_error_t ipResult=ip_To_String(ip_dstStr,ipHeader->ip_dst,sizeof(ip_dstStr));
+            sniffer_error_t ipSenderResult=ip_To_String(ip_SenStr,ipHeader->ip_src,sizeof(ip_SenStr));
+            if(ipResult.code==SNIFFER_OK&&ipSenderResult.code==SNIFFER_OK){
+                printf("Destnion Address: %s\n", ip_dstStr);
+                printf("Sender Address: %s\n",ip_SenStr);
+            }
+
+
+            
+
+            
+            printf("===============================\n");
+        }else{
+            printf("ipv6\n\n\n");
     }
+
+}
+
 
 
 
