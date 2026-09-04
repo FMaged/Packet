@@ -17,7 +17,7 @@ void print_ethernet(const sniff_ethernet* etherFrame){
 }
 
 
-void print_ip(sniff_ip* ipHeader){
+void print_ip(const sniff_ip* ipHeader){
     char version_buffer[16];
     char ip_dstStr[INET_ADDRSTRLEN];
     char ip_srcStr[INET_ADDRSTRLEN];
@@ -36,7 +36,7 @@ void print_ip(sniff_ip* ipHeader){
     printf("TTL: %d\n",ipHeader->ip_ttl);
 
     uint16_t calculated=calculate_checksum(ipHeader);
-    printf("Checksum: %d  %s\n",ipHeader->ip_sum,validateChecksum(ipHeader->ip_sum,calculated).msg);
+    printf("Checksum: 0x%04x  %s\n",ntohs(ipHeader->ip_sum),validateChecksum(ipHeader->ip_sum,calculated).msg);
 
     if (ip_To_String(ip_dstStr,ipHeader->ip_dst,sizeof(ip_dstStr)).code==SNIFFER_OK
      && ip_To_String(ip_srcStr,ipHeader->ip_src,sizeof(ip_srcStr)).code==SNIFFER_OK){
@@ -100,7 +100,7 @@ void print_tcp(const sniff_tcp* tcpHeader){
     tcp_flags_to_string(tcpHeader->th_flags,flags_buffer,sizeof(flags_buffer));
     printf("Flags: %s\n",flags_buffer);
     printf("Window: %d\n",ntohs(tcpHeader->th_win));
-    printf("Checksum: %d\n",ntohs(tcpHeader->th_sum));
+    printf("Checksum: 0x%04x\n",ntohs(tcpHeader->th_sum));
 }
 
 
@@ -108,14 +108,14 @@ void print_udp(const sniff_udp* udpHeader){
     printf("Src Port: %d\n",ntohs(udpHeader->uh_sport));
     printf("Dst Port: %d\n",ntohs(udpHeader->uh_dport));
     printf("Length: %d bytes\n",ntohs(udpHeader->uh_ulen));
-    printf("Checksum: %d\n",ntohs(udpHeader->uh_sum));
+    printf("Checksum: 0x%04x\n",ntohs(udpHeader->uh_sum));
 }
 
 
 void print_icmp(const sniff_icmp* icmpHeader){
     printf("ICMP Type: %d (%s)\n",icmpHeader->icmp_type,icmp_type_to_string(icmpHeader->icmp_type));
     printf("ICMP Code: %d\n",icmpHeader->icmp_code);
-    printf("Checksum: %d\n",ntohs(icmpHeader->icmp_sum));
+    printf("Checksum: 0x%04x\n",ntohs(icmpHeader->icmp_sum));
     if (icmp_is_echo(icmpHeader->icmp_type)){
         printf("ID: %d\n",ntohs(icmpHeader->icmp_id));
         printf("Seq: %d\n",ntohs(icmpHeader->icmp_seq));

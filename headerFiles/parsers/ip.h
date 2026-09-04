@@ -38,6 +38,9 @@ int ip_DF(uint16_t ip_off);
 int ip_MF(uint16_t ip_off);
 int ip_offset(uint16_t ip_off);
 
-uint16_t calculate_checksum(sniff_ip* ipHeader);
+/* ip_sum sits at byte offset 10, so it is the 6th 16-bit word */
+#define IP_SUM_WORD 5
+
+uint16_t calculate_checksum(const sniff_ip* ipHeader);
 sniffer_error_t validateChecksum(uint16_t checksum,uint16_t calculatedChecksum);
 #endif

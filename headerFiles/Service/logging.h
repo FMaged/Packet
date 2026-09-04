@@ -12,8 +12,7 @@
 
 void print_ethernet(const sniff_ethernet* etherFrame);
 
-/* Not const: calculate_checksum temporarily zeroes ip_sum in place */
-void print_ip(sniff_ip* ipHeader);
+void print_ip(const sniff_ip* ipHeader);
 
 void print_ip6(const sniff_ip6* ip6Header);
 

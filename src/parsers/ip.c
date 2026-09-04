@@ -61,28 +61,22 @@ int ip_offset(uint16_t ip_off){
 
 }
 
-uint16_t calculate_checksum(sniff_ip* ipHeader){
+uint16_t calculate_checksum(const sniff_ip* ipHeader){
     uint32_t sum = 0;
-    const uint16_t* data = (const uint16_t*)ipHeader;
-    size_t hdr_len_bytes = IP_HL(ipHeader) * 4;
-    size_t hdr_len_words = hdr_len_bytes / 2;
+    // Read as bytes: the packet sits in libpcap's buffer, which must not be
+    // written to, and a uint16_t* view would break strict aliasing.
+    const uint8_t* bytes = (const uint8_t*)ipHeader;
+    size_t hdr_len_words = (IP_HL(ipHeader) * 4) / 2;
 
-    // Save and zero original checksum
-    uint16_t saved_checksum = ipHeader->ip_sum;
-    ipHeader->ip_sum = 0;
-
-    // Sum 16-bit words
     for (size_t i = 0; i < hdr_len_words; i++) {
-        sum += ntohs(data[i]);
+        if (i == IP_SUM_WORD) continue;  // the checksum field counts as zero
+        sum += (uint32_t)(bytes[2*i] << 8 | bytes[2*i + 1]);
     }
 
     // Fold 32-bit sum into 16 bits
     while (sum >> 16) {
         sum = (sum & 0xFFFF) + (sum >> 16);
     }
-
-    // Restore original checksum
-    ipHeader->ip_sum = saved_checksum;
 
     // Return 1's complement, in network byte order
     return htons((uint16_t)(~sum));
