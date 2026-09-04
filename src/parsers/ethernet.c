@@ -9,7 +9,7 @@ uint16_t parse_ethernet(sniff_ethernet** etherFrame,const u_char* packet){
 }
 
 
-sniffer_error_t mac_to_string(uint8_t* mac, char* buffer,size_t size){
+sniffer_error_t mac_to_string(const uint8_t* mac, char* buffer,size_t size){
 
     if (!mac) return sniffer_error_create(SNIFFER_ERROR_INIT,"THE MAC | BUFFER  IS NULL"); // Avoid NULL pointer issues
     
@@ -66,4 +66,7 @@ sniffer_error_t type_to_sting(uint16_t type,char* buffer,size_t size){
         return sniffer_error_create(SNIFFER_ERROR_INVALID_ARG,"BUFFER SIZE TOO SMALL");
     }
     return sniffer_error_create(SNIFFER_OK,"OK");
+
+
+
 }

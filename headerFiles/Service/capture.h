@@ -4,10 +4,7 @@
 #include <pcap.h>
 #include <arpa/inet.h>
 #include "protocols.h"
-#include "../parsers/ethernet.h"
-#include "../parsers/ip.h"
-
-
+#include "logging.h"
 
 
 pcap_if_t* get_all_interfaces(char *errbuf);

@@ -69,66 +69,76 @@ sniffer_error_t compile_and_apply_filter(pcap_t* handle, struct bpf_program* fp,
 }
 
 
-void packet_handler(u_char *user_data, const struct pcap_pkthdr *pkthdr, const u_char *packet){
-    
-    sniff_ethernet* etherFrame=NULL;
-    sniff_ip* ipHeader=NULL;
-    char buffer[32];
-    char dhost_buffer[18];
-    char shost_buffer[18];
-    char Vbuffer[16];
-    uint16_t type= parse_ethernet(&etherFrame,packet);
-    sniffer_error_t result=type_to_sting(type,buffer,sizeof(buffer));
-    sniffer_error_t macResult=mac_to_string(etherFrame->ether_dhost,dhost_buffer,sizeof(dhost_buffer));
-    sniffer_error_t senderMacResult=mac_to_string(etherFrame->ether_shost,shost_buffer,sizeof(shost_buffer));
-    
-    if(result.code==SNIFFER_OK&&macResult.code==SNIFFER_OK&&senderMacResult.code==SNIFFER_OK){
-        printf("dst MacAddress: %s\n",dhost_buffer);    
-        printf("Sender MacAddress: %s\n",shost_buffer);
-        printf("Type: %s\n",buffer);
-        if(type==htons(ETHERTYPE_IP)){
-            u_char protocol=parse_ip(&ipHeader,packet);
-            printf("Protocol: %s\n",protocol_to_string(protocol));
-            printf("version: %d\n",IP_V(ipHeader));
-            result=ipV_to_string(IP_V(ipHeader),Vbuffer,sizeof(Vbuffer));
-            printf("Verśion string: %s\n",Vbuffer);
-            printf("header length: %d bits\n",IP_HL(ipHeader)*4);   
-            printf("Total Length: %d bytes\n",ntohs(ipHeader->ip_len ));
-            printf("ID: %d\n",ntohs(ipHeader->ip_id));
-            printf("Fragmention: %d\n",ntohs(ipHeader->ip_off));
-            printf("Dont Fragment: %d\n",ip_DF(ipHeader->ip_off));
-            printf("More Fragment: %d\n",ip_MF(ipHeader->ip_off));
-            printf("frag Offset: %d\n",ip_offset(ipHeader->ip_off));
-            printf("TTL: %d\n",ipHeader->ip_ttl);
-            uint16_t cChecksum=calculate_checksum(ipHeader);
-            printf("Checksum: %d  %s\n",ipHeader->ip_sum,validateChecksum(ipHeader->ip_sum,cChecksum).msg);
 
 
-            char ip_dstStr[INET_ADDRSTRLEN];
-            char ip_SenStr[INET_ADDRSTRLEN];
-            sniffer_error_t ipResult=ip_To_String(ip_dstStr,ipHeader->ip_dst,sizeof(ip_dstStr));
-            sniffer_error_t ipSenderResult=ip_To_String(ip_SenStr,ipHeader->ip_src,sizeof(ip_SenStr));
-            if(ipResult.code==SNIFFER_OK&&ipSenderResult.code==SNIFFER_OK){
-                printf("Destnion Address: %s\n", ip_dstStr);
-                printf("Sender Address: %s\n",ip_SenStr);
-            }
-
-
-            
-
-            
-            printf("===============================\n");
-        }else{
-            printf("ipv6\n\n\n");
+/* Decodes the transport layer shared by IPv4 and IPv6 */
+static void dispatch_transport(const u_char* packet,u_int offset,bpf_u_int32 caplen,uint8_t protocol){
+    switch (protocol) {
+    case IPPROTO_TCP: {
+        if (caplen < offset+20) return;
+        sniff_tcp* tcpHeader=NULL;
+        parse_tcp(&tcpHeader,packet,offset);
+        print_tcp(tcpHeader);
+        break;
     }
-
+    case IPPROTO_UDP: {
+        if (caplen < offset+SIZE_UDP) return;
+        sniff_udp* udpHeader=NULL;
+        parse_udp(&udpHeader,packet,offset);
+        print_udp(udpHeader);
+        break;
+    }
+    case IPPROTO_ICMP: {
+        if (caplen < offset+SIZE_ICMP) return;
+        sniff_icmp* icmpHeader=NULL;
+        parse_icmp(&icmpHeader,packet,offset);
+        print_icmp(icmpHeader);
+        break;
+    }
+    }
 }
 
 
+void packet_handler(u_char *user_data, const struct pcap_pkthdr *pkthdr, const u_char *packet){
+    (void)user_data;
 
+    if (pkthdr->caplen < SIZE_ETHERNET) return;
 
+    sniff_ethernet* etherFrame=NULL;
+    uint16_t type=parse_ethernet(&etherFrame,packet);
+    print_ethernet(etherFrame);
 
+    switch (ntohs(type)) {
+    case ETHERTYPE_IP: {
+        if (pkthdr->caplen < SIZE_ETHERNET+20) break;
+        sniff_ip* ipHeader=NULL;
+        parse_ip(&ipHeader,packet);
 
+        u_int header_len=IP_HL(ipHeader)*4;
+        if (header_len < 20 || pkthdr->caplen < SIZE_ETHERNET+header_len) break;
+
+        print_ip(ipHeader);
+        dispatch_transport(packet,SIZE_ETHERNET+header_len,pkthdr->caplen,ipHeader->ip_p);
+        break;
+    }
+    case ETHERTYPE_IPV6: {
+        if (pkthdr->caplen < SIZE_ETHERNET+SIZE_IP6) break;
+        sniff_ip6* ip6Header=NULL;
+        uint8_t next=parse_ip6(&ip6Header,packet);
+        print_ip6(ip6Header);
+        dispatch_transport(packet,SIZE_ETHERNET+SIZE_IP6,pkthdr->caplen,next);
+        break;
+    }
+    case ETHERTYPE_ARP: {
+        if (pkthdr->caplen < SIZE_ETHERNET+SIZE_ARP) break;
+        sniff_arp* arpHeader=NULL;
+        parse_arp(&arpHeader,packet);
+        print_arp(arpHeader);
+        break;
+    }
+    }
+
+    print_separator();
 }
 
 void start_Capture(pcap_t* handle,int count,u_char *userdata){
