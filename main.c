@@ -7,18 +7,8 @@
 
 int main(){
 
-
-
-
-
-
-
-
-
-
-
     pcap_t *handle;		/* Session handle */
-    char* dev = "";		/* Device to sniff on */
+    char* dev = NULL;		/* Device to sniff on */
     char errbuf[PCAP_ERRBUF_SIZE];	/* Error string */
     struct bpf_program fp;		/* The compiled filter expression */
     char filter_exp[] ="ip";	/* The filter expression */
@@ -27,23 +17,26 @@ int main(){
     int count=0;  /* Number of packets to capture (0 for infinite).*/
 
     get_device(&dev,&net,&mask,errbuf);
+    if(!dev){
+        fprintf(stderr, "No capture device available\n");
+        return 1;
+    }
+
     handle=open_device(dev,errbuf);
     free(dev);
-    compile_and_apply_filter(handle,&fp,filter_exp,net);
-    if(handle){
-        printf("Network: %s\n", inet_ntoa(*(struct in_addr*)&net));
-    
+    if(!handle){
+        return 1;
     }
+
+    if(compile_and_apply_filter(handle,&fp,filter_exp,net).code != SNIFFER_OK){
+        pcap_close(handle);
+        return 1;
+    }
+    printf("Network: %s\n", inet_ntoa(*(struct in_addr*)&net));
+
     start_Capture(handle,count,NULL);
-    if(handle){
-        printf("Network: %s\n", inet_ntoa(*(struct in_addr*)&net));
-    
-    }
 
-
-
-
-
-
+    pcap_freecode(&fp);
+    pcap_close(handle);
+    return 0;
 }
-

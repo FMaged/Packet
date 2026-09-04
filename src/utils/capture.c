@@ -28,10 +28,15 @@ void get_first_interface(char** dev,char* errbuf){
 
 void get_device(char** dev,bpf_u_int32* net,bpf_u_int32* mask,char* errbuf){
     get_first_interface(dev,errbuf);
+    if(!*dev){
+        *net = 0;
+        *mask = 0;
+        return;
+    }
     if(pcap_lookupnet(*dev,net,mask,errbuf)==-1){
 		fprintf(stderr, "Couldn't get netmask for device %s: %s\n", *dev, errbuf);
-		net = 0;
-		mask = 0;
+		*net = 0;
+		*mask = 0;
     }
 
 
@@ -50,24 +55,18 @@ pcap_t* open_device(char* dev,char* errbuf){
 
 
 
-void compile_and_apply_filter(pcap_t* handle, struct bpf_program* fp, char* filter_exp,bpf_u_int32 net){
+sniffer_error_t compile_and_apply_filter(pcap_t* handle, struct bpf_program* fp, char* filter_exp,bpf_u_int32 net){
     if(pcap_compile(handle,fp,filter_exp,0,net)==-1){
 		fprintf(stderr, "Couldn't parse filter %s: %s\n", filter_exp, pcap_geterr(handle));
-        handle=NULL;
-        return;
+        return sniffer_error_create(SNIFFER_ERROR_INIT,"Couldn't parse filter");
     }
     if (pcap_setfilter(handle, fp) == -1) {
 		fprintf(stderr, "Couldn't install filter %s: %s\n", filter_exp, pcap_geterr(handle));
-        handle=NULL;
-        return;
+        pcap_freecode(fp);
+        return sniffer_error_create(SNIFFER_ERROR_INIT,"Couldn't install filter");
     }
-
-
-
-    
+    return sniffer_error_create(SNIFFER_OK,"OK");
 }
-
-
 
 
 void packet_handler(u_char *user_data, const struct pcap_pkthdr *pkthdr, const u_char *packet){
@@ -133,9 +132,8 @@ void packet_handler(u_char *user_data, const struct pcap_pkthdr *pkthdr, const u
 }
 
 void start_Capture(pcap_t* handle,int count,u_char *userdata){
-    if(pcap_loop(handle,count,packet_handler,NULL)==-1){
+    if(pcap_loop(handle,count,packet_handler,userdata)==-1){
         fprintf(stderr, "Couldn't loop: %s\n", pcap_geterr(handle));
-        handle=NULL;
         return;
     }
 }

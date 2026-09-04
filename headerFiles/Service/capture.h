@@ -1,4 +1,4 @@
-#ifndef CAPtURE_H
+#ifndef CAPTURE_H
 #define CAPTURE_H
 
 #include <string.h>
@@ -21,7 +21,7 @@ void get_device(char** dev,bpf_u_int32* net,bpf_u_int32* mask,char* errbuf);
 
 pcap_t* open_device(char* dev,char* errbuf);
 
-void compile_and_apply_filter(pcap_t* handle, struct bpf_program* fp, char* filter_exp,bpf_u_int32 net);
+sniffer_error_t compile_and_apply_filter(pcap_t* handle, struct bpf_program* fp, char* filter_exp,bpf_u_int32 net);
 
 void packet_handler(u_char *user_data, const struct pcap_pkthdr *pkthdr, const u_char *packet);
 
