@@ -34,7 +34,7 @@ uint16_t parse_ethernet(sniff_ethernet** etherFrame,const u_char* packet);
 
 sniffer_error_t mac_to_string(uint8_t* mac, char* buffer,size_t size);
 
-sniffer_error_t type_to_sting(uint16_t type,char* buffer);
+sniffer_error_t type_to_sting(uint16_t type,char* buffer,size_t size);
 
 
 

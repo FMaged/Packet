@@ -74,12 +74,12 @@ void packet_handler(u_char *user_data, const struct pcap_pkthdr *pkthdr, const u
     
     sniff_ethernet* etherFrame=NULL;
     sniff_ip* ipHeader=NULL;
-    char buffer[8];
+    char buffer[32];
     char dhost_buffer[18];
     char shost_buffer[18];
-    char Vbuffer[4];
+    char Vbuffer[16];
     uint16_t type= parse_ethernet(&etherFrame,packet);
-    sniffer_error_t result=type_to_sting(type,buffer);
+    sniffer_error_t result=type_to_sting(type,buffer,sizeof(buffer));
     sniffer_error_t macResult=mac_to_string(etherFrame->ether_dhost,dhost_buffer,sizeof(dhost_buffer));
     sniffer_error_t senderMacResult=mac_to_string(etherFrame->ether_shost,shost_buffer,sizeof(shost_buffer));
     
@@ -91,7 +91,7 @@ void packet_handler(u_char *user_data, const struct pcap_pkthdr *pkthdr, const u
             u_char protocol=parse_ip(&ipHeader,packet);
             printf("Protocol: %s\n",protocol_to_string(protocol));
             printf("version: %d\n",IP_V(ipHeader));
-            result=ipV_to_string(IP_V(ipHeader),Vbuffer);
+            result=ipV_to_string(IP_V(ipHeader),Vbuffer,sizeof(Vbuffer));
             printf("Verśion string: %s\n",Vbuffer);
             printf("header length: %d bits\n",IP_HL(ipHeader)*4);   
             printf("Total Length: %d bytes\n",ntohs(ipHeader->ip_len ));

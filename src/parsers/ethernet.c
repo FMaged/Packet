@@ -34,35 +34,36 @@ sniffer_error_t mac_to_string(uint8_t* mac, char* buffer,size_t size){
 
 
 
-sniffer_error_t type_to_sting(uint16_t type,char* buffer){
-    if (!type ) {
-        return sniffer_error_create(SNIFFER_ERROR_INIT,"THE TYPE IS NULL");
-    }
+sniffer_error_t type_to_sting(uint16_t type,char* buffer,size_t size){
+    if (!buffer) return sniffer_error_create(SNIFFER_ERROR_INVALID_ARG,"THE BUFFER IS NULL");
 
-    // Convert from network to host byte order
-    type = ntohs(type); 
+    type = ntohs(type);  // struct fields arrive in network order
+
+    const char* name;
     switch (type)
     {
     case ETHERTYPE_IP:
-        strcpy(buffer,"Ipv4");
-        //buffer="Ipv4";
+        name = "IPv4";
         break;
-    
+
     case ETHERTYPE_IPV6:
-        strcpy(buffer, "Ipv6"); 
+        name = "IPv6";
         break;
 
     case ETHERTYPE_ARP:
-        strcpy(buffer, "ARP"); 
+        name = "ARP";
         break;
 
     default:
-        snprintf(buffer, 32, "Unknown (0x%04X)", type);
+        if ((size_t)snprintf(buffer, size, "Unknown (0x%04X)", type) >= size) {
+            return sniffer_error_create(SNIFFER_ERROR_INVALID_ARG,"BUFFER SIZE TOO SMALL");
+        }
         return sniffer_error_create(SNIFFER_ERROR_INIT,"UNDEFINED TYPE");
-        
+
+    }
+
+    if ((size_t)snprintf(buffer, size, "%s", name) >= size) {
+        return sniffer_error_create(SNIFFER_ERROR_INVALID_ARG,"BUFFER SIZE TOO SMALL");
     }
     return sniffer_error_create(SNIFFER_OK,"OK");
-
-
-
 }

@@ -13,26 +13,31 @@ uint8_t parse_ip (sniff_ip** ipHeader,const u_char* packet){
     return (*ipHeader)->ip_p;
 }
 
-sniffer_error_t ipV_to_string(uint8_t extractedVersion,char* buffer){
+sniffer_error_t ipV_to_string(uint8_t extractedVersion,char* buffer,size_t size){
 	if (buffer == NULL) {
-        return sniffer_error_create(SNIFFER_ERROR_INIT, "Buffer is NULL");
+        return sniffer_error_create(SNIFFER_ERROR_INVALID_ARG, "Buffer is NULL");
     }
+
+	const char* name;
 	switch (extractedVersion)
 	{
 	case 4:
-		strcpy(buffer, "IPv4");
+		name = "IPv4";
 		break;
 	case 6:
-		strcpy(buffer, "IPv6");
+		name = "IPv6";
 		break;
 	default:
-	snprintf(buffer, 32, "Unknown (%d)", extractedVersion);
-	return sniffer_error_create(SNIFFER_ERROR_INIT, "Unknown IP Version");
-}
+		if ((size_t)snprintf(buffer, size, "Unknown (%d)", extractedVersion) >= size) {
+			return sniffer_error_create(SNIFFER_ERROR_INVALID_ARG, "Buffer size too small");
+		}
+		return sniffer_error_create(SNIFFER_ERROR_INIT, "Unknown IP Version");
+	}
 
-
-
-return sniffer_error_create(SNIFFER_OK, "OK");
+	if ((size_t)snprintf(buffer, size, "%s", name) >= size) {
+		return sniffer_error_create(SNIFFER_ERROR_INVALID_ARG, "Buffer size too small");
+	}
+	return sniffer_error_create(SNIFFER_OK, "OK");
 
 }
 

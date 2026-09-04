@@ -43,7 +43,7 @@ typedef struct  {
 uint8_t parse_ip (sniff_ip** ipHeader,const u_char* packet);
 sniffer_error_t ip_To_String(char* buffer, uint32_t ip_addr, size_t size);
 
-sniffer_error_t ipV_to_string(uint8_t extractedVersion,char* buffer);
+sniffer_error_t ipV_to_string(uint8_t extractedVersion,char* buffer,size_t size);
 
 int ip_DF(uint16_t ip_off);
 int ip_MF(uint16_t ip_off);
