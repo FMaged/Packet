@@ -1,8 +1,11 @@
 CC = gcc
 CFLAGS = -Iinclude -Wall
 LDFLAGS = -lpcap
-SRC = main.c src/utils/capture.c src/utils/error.c src/utils/protocols.c src/parsers/ethernet.c src/parsers/ip.c 
-		
+SRC = main.c \
+	src/utils/capture.c src/utils/error.c src/utils/protocols.c \
+	src/parsers/ethernet.c src/parsers/ip.c src/parsers/ip6.c \
+	src/parsers/arp.c src/parsers/tcp.c src/parsers/udp.c src/parsers/icmp.c
+
 OBJ = $(SRC:.c=.o)
 EXEC = main
 

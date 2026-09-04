@@ -11,7 +11,7 @@ int main(){
     char* dev = NULL;		/* Device to sniff on */
     char errbuf[PCAP_ERRBUF_SIZE];	/* Error string */
     struct bpf_program fp;		/* The compiled filter expression */
-    char filter_exp[] ="ip";	/* The filter expression */
+    char filter_exp[] ="ip or ip6 or arp";	/* The filter expression */
     bpf_u_int32 mask;		/* The netmask of our sniffing device */
     bpf_u_int32 net;		/* The IP of our sniffing device */
     int count=0;  /* Number of packets to capture (0 for infinite).*/

@@ -1,22 +1,20 @@
 #ifndef TCP_H
 #define TCP_H
 
-typedef unsigned char u_char;
-typedef unsigned short u_short;
-typedef unsigned int u_int;
-
+#include "../Service/protocols.h"
+#include "../Service/error.h"
 
 /* TCP header */
-typedef u_int tcp_seq;
+typedef uint32_t tcp_seq;
 
 typedef struct  {
-	u_short th_sport;	/* source port */
-	u_short th_dport;	/* destination port */
+	uint16_t th_sport;	/* source port */
+	uint16_t th_dport;	/* destination port */
 	tcp_seq th_seq;		/* sequence number */
 	tcp_seq th_ack;		/* acknowledgement number */
-	u_char th_offx2;	/* data offset, rsvd */
+	uint8_t th_offx2;	/* data offset, rsvd */
 #define TH_OFF(th)	(((th)->th_offx2 & 0xf0) >> 4)
-	u_char th_flags;
+	uint8_t th_flags;
 #define TH_FIN 0x01
 #define TH_SYN 0x02
 #define TH_RST 0x04
@@ -26,11 +24,16 @@ typedef struct  {
 #define TH_ECE 0x40
 #define TH_CWR 0x80
 #define TH_FLAGS (TH_FIN|TH_SYN|TH_RST|TH_ACK|TH_URG|TH_ECE|TH_CWR)
-	u_short th_win;		/* window */
-	u_short th_sum;		/* checksum */
-	u_short th_urp;		/* urgent pointer */
+	uint16_t th_win;		/* window */
+	uint16_t th_sum;		/* checksum */
+	uint16_t th_urp;		/* urgent pointer */
 }sniff_tcp;
 
+/* Longest output is "FIN|SYN|RST|PSH|ACK|URG|ECE|CWR" plus terminator */
+#define TCP_FLAGS_STRLEN 32
 
+void parse_tcp(sniff_tcp** tcpHeader,const u_char* packet,u_int offset);
+
+sniffer_error_t tcp_flags_to_string(uint8_t flags,char* buffer,size_t size);
 
 #endif
