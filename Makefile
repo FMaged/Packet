@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Iinclude -Wall
+CFLAGS = -Wall
 LDFLAGS = -lpcap
 SRC = main.c \
 	src/utils/capture.c src/utils/error.c src/utils/logging.c src/utils/protocols.c \
