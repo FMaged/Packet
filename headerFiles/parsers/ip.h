@@ -1,20 +1,9 @@
 #ifndef IP_H
 #define IP_H
 
-#include <stdio.h>
-#include <string.h>
-
-#include <netinet/in.h>
 #include <arpa/inet.h>  // For inet_ntop()
+#include "../Service/protocols.h"
 #include "../Service/error.h"
-
-typedef unsigned char u_char;
-typedef unsigned short u_short;
-typedef unsigned int u_int;
-
-/* ethernet headers are always exactly 14 bytes */
-#define SIZE_ETHERNET 14
-
 
 /* IP header */
 typedef struct  {
@@ -48,7 +37,6 @@ sniffer_error_t ipV_to_string(uint8_t extractedVersion,char* buffer,size_t size)
 int ip_DF(uint16_t ip_off);
 int ip_MF(uint16_t ip_off);
 int ip_offset(uint16_t ip_off);
-char* protocol_to_string(uint8_t protocol);
 
 uint16_t calculate_checksum(sniff_ip* ipHeader);
 sniffer_error_t validateChecksum(uint16_t checksum,uint16_t calculatedChecksum);

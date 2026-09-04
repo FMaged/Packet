@@ -1,23 +1,8 @@
 #ifndef ETHERNET_H
 #define ETHERNET_H
 
-#include <stdio.h>
-#include <stdint.h>
-#include <string.h>
-#include <netinet/in.h>
-
+#include "../Service/protocols.h"
 #include "../Service/error.h"
-
-typedef unsigned char u_char;
-
-
-
-#define ETHERTYPE_IP  0x0800  // IPv4
-#define ETHERTYPE_ARP 0x0806  // ARP
-#define ETHERTYPE_IPV6 0x86DD // IPv6
-
-/* Ethernet addresses are 6 bytes */
-#define ETHER_ADDR_LEN	6
 
 /* Ethernet header */
 

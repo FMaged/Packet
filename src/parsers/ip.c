@@ -61,23 +61,6 @@ int ip_offset(uint16_t ip_off){
 
 }
 
-char* protocol_to_string(uint8_t protocol){
-	switch (protocol) {
-        case 1: return "ICMP";
-        case 2: return "IGMP";
-        case 6: return "TCP";
-        case 17: return "UDP";
-        case 41: return "IPv6";
-        case 47: return "GRE";
-        case 50: return "ESP";
-        case 51: return "AH";
-        case 89: return "OSPF";
-        default: return "Unknown";
-	}
-
-
-}
-
 uint16_t calculate_checksum(sniff_ip* ipHeader){
     uint32_t sum = 0;
     const uint16_t* data = (const uint16_t*)ipHeader;

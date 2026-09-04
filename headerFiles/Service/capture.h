@@ -1,15 +1,12 @@
 #ifndef CAPTURE_H
 #define CAPTURE_H
 
-#include <string.h>
 #include <pcap.h>
 #include <arpa/inet.h>
+#include "protocols.h"
 #include "../parsers/ethernet.h"
 #include "../parsers/ip.h"
 
-typedef unsigned char u_char;
-typedef unsigned short u_short;
-typedef unsigned int u_int;
 
 
 
